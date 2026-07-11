@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { RowSelectionState } from '@tanstack/react-table';
 import { Edit2Icon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 import { useColumns } from '../lib/columns';
 
@@ -34,12 +33,11 @@ import { Separator } from '@/shared/ui/separator';
 import { convertApiGameLoaderImage } from '@/shared/converters';
 import { ClientState } from '@/widgets/client-hub';
 import { Button } from '@/shared/ui/button';
-import { DASHBOARD_PAGES } from '@/shared/routes';
+import { getProfilePath } from '@/shared/routes';
 
 export function ProfilesCard() {
   const { data: profiles, isLoading } = useProfiles();
   const { data: currentProfile } = useCurrentProfile();
-  const router = useRouter();
   const deleteMutation = useDeleteProfile();
   const deleteAllMutation = useDeleteProfiles();
 
@@ -68,7 +66,7 @@ export function ProfilesCard() {
     };
 
   const onRedirectEditProfile = (profileName: string) => () => {
-    router.push(`${DASHBOARD_PAGES.PROFILE}/${profileName}`);
+    window.location.assign(getProfilePath(profileName));
   };
 
   const onProfilesDelete =

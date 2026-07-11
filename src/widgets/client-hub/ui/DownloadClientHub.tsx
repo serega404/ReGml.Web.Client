@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Ubuntu_Mono } from 'next/font/google';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { ArrowBigDownDash, ChevronsUpDown, Package2Icon } from 'lucide-react';
 
@@ -22,12 +21,6 @@ interface DownloadClientHubProps {
   profile?: ProfileExtendedBaseEntity;
   isLoading?: boolean;
 }
-
-const ubuntuMono = Ubuntu_Mono({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  weight: '400',
-});
 
 export function DownloadClientHub(props: DownloadClientHubProps) {
   const [javaVersionsOpen, setJavaVersionsOpen] = useState(false);
@@ -223,7 +216,7 @@ export function DownloadClientHub(props: DownloadClientHubProps) {
             <Textarea
               ref={textareaRef}
               value={logs ? logs.join('\n') : ''}
-              className={cn('h-80 max-h-80 font-sans', ubuntuMono.variable)}
+              className="h-80 max-h-80 font-mono"
               readOnly
             />
           </div>

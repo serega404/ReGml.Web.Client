@@ -99,7 +99,7 @@ const config = {
         'loading-bar': 'loading-bar 1.5s linear forwards',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', ...fontFamily.sans],
+        sans: fontFamily.sans,
       },
     },
   },

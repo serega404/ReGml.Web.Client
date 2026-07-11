@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { Ubuntu_Mono } from 'next/font/google';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -30,12 +29,6 @@ interface BuildClientFormProps extends React.HTMLAttributes<HTMLDivElement> {
   connectionHub: ReturnType<typeof useConnectionHub>['connectionHub'];
   state: ReturnType<typeof useConnectionHub>['build'];
 }
-
-const ubuntuMono = Ubuntu_Mono({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  weight: '400',
-});
 
 export function BuildClientForm({
   className,
@@ -185,7 +178,7 @@ export function BuildClientForm({
         <Textarea
           ref={textareaRef}
           value={logs.join('\n')}
-          className={cn('h-64 max-h-64 font-sans', ubuntuMono.variable)}
+          className="h-64 max-h-64 font-mono"
           readOnly
         />
       )}

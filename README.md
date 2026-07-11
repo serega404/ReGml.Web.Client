@@ -2,109 +2,113 @@
 
 # Gml.Web.Client
 
-A modern web client for the Gml Launcher, built with Next.js. This project provides a user-friendly interface to
-interact with the Gml Launcher's backend services.
+Статический веб-клиент Gml Launcher на Next.js. Приложение собирается в HTML, CSS и JavaScript,
+а данные получает в браузере из Gml backend.
 
-## Features
+## Требования
 
-- Seamless integration with the Gml Launcher backend
-- Responsive and intuitive UI
-- Real-time interaction with launcher functionalities
-- Easy configuration via environment variables
+- Node.js 20+
+- npm
+- доступный Gml backend
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (v17 or higher)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-- Access to the Gml Launcher backend API
-
-## Getting Started
-
-Follow these steps to set up and run the project locally:
-
-### 1. Clone the Repository
+## Локальная разработка
 
 ```bash
-git clone https://github.com/Gml-Launcher/Gml.Web.Client.git
-cd Gml.Web.Client
-```
-
-### 2. Install Dependencies
-
-Using npm:
-
-```bash
-npm install
-```
-
-Or using yarn:
-
-```bash
-yarn install
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file in the root of the project and add the following configuration:
-
-```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/api/v1
-```
-
-Replace `http://localhost:5000/api/v1` with the actual URL of your Gml Launcher backend API if different.
-
-### 4. Run the Development Server
-
-Start the Next.js development server:
-
-```bash
+npm ci
 npm run dev
 ```
 
-Or with yarn:
+Dev-сервер доступен на `http://localhost:3000`.
+
+## Статическая сборка
 
 ```bash
-yarn dev
+npm ci
+npm run build:static
 ```
 
-The application will be available at `http://localhost:3000`.
+Next.js создаёт готовый к публикации каталог `out/`. Команда также проверяет наличие основных
+HTML-файлов экспорта. Для production-запуска Next.js/Node.js не требуется.
 
-## Building for Production
+Единственная клиентская build-time переменная:
 
-To create a production-ready build:
+| Переменная | Назначение |
+| --- | --- |
+| `NEXT_PUBLIC_MARKETPLACE_URL` | Адрес внешнего Gml Marketplace API |
+
+Основной backend всегда вызывается по относительным same-origin путям `/api/v1`. SignalR использует
+относительные пути `/ws`.
+
+## Docker
 
 ```bash
-npm run build
+docker build \
+  --build-arg NEXT_PUBLIC_MARKETPLACE_URL=https://gml-market.recloud.tech \
+  -t gml-web-client .
+docker run --rm -p 8081:8081 gml-web-client
 ```
 
-Start the production server:
+Финальный образ основан на Nginx и содержит только каталог `out/`. Nginx слушает порт `8081`.
+
+Конфигурация frontend-контейнера сохраняет slug вида `/dashboard/profile/<name>`: для такого URL
+внутренне отдаётся статическая оболочка `/dashboard/profile/index.html`. Неизвестные URL вне этого
+маршрута возвращают `404`.
+
+## Внешний reverse proxy
+
+Frontend-контейнер не проксирует backend. Внешний ingress или reverse proxy должен маршрутизировать
+один публичный origin по следующему контракту:
+
+- `/api/v1/*` — HTTP-запросы в Gml backend;
+- `/ws/*` — Gml backend с поддержкой WebSocket upgrade;
+- остальные пути — frontend-контейнер на порту `8081`.
+
+Пример Nginx-конфигурации внешнего proxy:
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+server {
+    listen 80;
+
+    location /api/v1/ {
+        proxy_pass http://gml-backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    location /ws/ {
+        proxy_pass http://gml-backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://gml-web-client:8081;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+Backend остаётся ответственным за авторизацию и защиту данных. Клиентский `AuthGuard` скрывает
+dashboard до проверки access token или завершения refresh-запроса.
+
+## Проверки
 
 ```bash
-npm run start
+npm run build:static
+npx playwright test
 ```
 
-## Environment Variables
-
-| Variable                  | Description                         | Default Value                  |
-|---------------------------|-------------------------------------|--------------------------------|
-| `NEXT_PUBLIC_BACKEND_URL` | URL of the Gml Launcher backend API | `http://localhost:5000/api/v1` |
-
-## Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/your-feature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add your feature'`)
-5. Push to the branch (`git push origin feature/your-feature`)
-6. Open a Pull Request
+Playwright требует запущенный frontend и доступный тестовый backend.
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
-
-## Contact
-
-For issues or questions, please open an issue on
-the [GitHub Issues page](https://github.com/Gml-Launcher/Gml.Web.Client/issues).
+[Apache License 2.0](LICENSE)

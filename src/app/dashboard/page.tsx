@@ -1,12 +1,16 @@
-import { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { DASHBOARD_PAGES } from '@/shared/routes';
 
-export const metadata: Metadata = {
-  title: 'Дашборд',
-};
+export default function DashboardPage() {
+  const router = useRouter();
 
-export default async function DashboardPage() {
-  redirect(DASHBOARD_PAGES.PROFILES);
+  useEffect(() => {
+    router.replace(DASHBOARD_PAGES.PROFILES);
+  }, [router]);
+
+  return null;
 }

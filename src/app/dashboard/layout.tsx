@@ -22,6 +22,7 @@ import { DonationPro } from '@/shared/ui/DonationPro';
 import { Badge } from '@/shared/ui/badge';
 import { TMenuItem } from '@/shared/types';
 import logo from '@/assets/logos/logo.svg';
+import { AuthGuard } from '@/core/components/AuthGuard';
 
 const menu: TMenuItem[] = [
   {
@@ -65,33 +66,35 @@ const menu: TMenuItem[] = [
 
 export default function Page({ children }: React.PropsWithChildren) {
   return (
-    <div className={classes.layout}>
-      <aside className={classes.aside}>
-        <div className={classes.aside__wrapper}>
-          <div className={classes['aside__wrapper-logo']}>
-            <Link href="/" className={classes.aside__logo}>
-              <Image src={logo} alt="Gml Frontend" />
-              {config.name}
-              <sup className={classes.version}>{config.version}</sup>
-            </Link>
+    <AuthGuard>
+      <div className={classes.layout}>
+        <aside className={classes.aside}>
+          <div className={classes.aside__wrapper}>
+            <div className={classes['aside__wrapper-logo']}>
+              <Link href="/" className={classes.aside__logo}>
+                <Image src={logo} alt="Gml Frontend" />
+                {config.name}
+                <sup className={classes.version}>{config.version}</sup>
+              </Link>
+            </div>
+            <DesktopNavigation menu={menu} />
+            <div className={classes.aside__pro}>
+              <DonationPro />
+            </div>
           </div>
-          <DesktopNavigation menu={menu} />
-          <div className={classes.aside__pro}>
-            <DonationPro />
-          </div>
+        </aside>
+        <div className={classes.content}>
+          <header className={classes.header}>
+            <MobileNavigation menu={menu} />
+            <div className={classes.header__actions}>
+              <Notifications />
+              <ChangeTheme />
+              <AccountNavigation />
+            </div>
+          </header>
+          <main className={classes.main}>{children}</main>
         </div>
-      </aside>
-      <div className={classes.content}>
-        <header className={classes.header}>
-          <MobileNavigation menu={menu} />
-          <div className={classes.header__actions}>
-            <Notifications />
-            <ChangeTheme />
-            <AccountNavigation />
-          </div>
-        </header>
-        <main className={classes.main}>{children}</main>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

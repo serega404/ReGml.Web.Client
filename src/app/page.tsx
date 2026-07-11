@@ -8,10 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { AUTH_PAGES } from '@/shared/routes';
 import { cn } from '@/shared/lib/utils';
 import { buttonVariants } from '@/shared/ui/button';
+import { PublicAuthRedirect } from '@/core/components/PublicAuthRedirect';
 
 export default function Home() {
   return (
     <>
+      <PublicAuthRedirect />
       <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
         <div className="flex w-full max-w-sm flex-col gap-6">
           <a href="#" className="flex items-center gap-2 self-center font-medium">

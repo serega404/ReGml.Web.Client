@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { RowSelectionState } from '@tanstack/react-table';
 import { Laptop2 } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
 
 import classes from './styles.module.css';
 
@@ -44,32 +43,50 @@ import { GamePlayers } from '@/widgets/game-players';
 import { useGamePlayerStore } from '@/widgets/game-players/lib/store';
 import { GameMods } from '@/widgets/game-mods';
 
-export const ProfilePage = ({ params }: { params: { name: string } }) => {
-  const account = getStorageProfile();
+type ProfilePageProps = {
+  profileName: string;
+  initialTab: string;
+};
+
+const updateTabUrl = (tab: string, replace = false) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set('tab', tab);
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', url);
+};
+
+export const ProfilePage = ({ profileName, initialTab }: ProfilePageProps) => {
+  const accountName = getStorageProfile()?.name;
   const accessToken = getStorageAccessToken();
   const { data, mutate, isPending } = useProfile();
   const { setPlayers } = useGamePlayerStore();
   const profile = data?.data.data;
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const { mutate: mutateDeleteFilesWhitelist } = useDeleteFilesWhitelist();
   const { mutate: mutateDeleteFoldersWhitelist } = useDeleteFolderWhitelist();
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get('tab') || 'main');
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   useEffect(() => {
-    if (account && accessToken) {
+    if (accountName && accessToken) {
       mutate({
-        UserName: account.name,
-        ProfileName: decodeURIComponent(params.name),
+        UserName: accountName,
+        ProfileName: profileName,
         UserAccessToken: accessToken,
         UserUuid: 'uuid',
         OsArchitecture: OsArchitectureEnum.X64,
         OsType: OsTypeEnum.WINDOWS.toString(),
       });
     }
+  }, [accountName, accessToken, mutate, profileName]);
+
+  useEffect(() => {
+    const handleHistoryChange = () => {
+      setActiveTab(new URL(window.location.href).searchParams.get('tab') || 'main');
+    };
+
+    window.addEventListener('popstate', handleHistoryChange);
+    return () => window.removeEventListener('popstate', handleHistoryChange);
   }, []);
 
   useEffect(() => {
@@ -83,9 +100,9 @@ export const ProfilePage = ({ params }: { params: { name: string } }) => {
   useEffect(() => {
     if (isVanilla && activeTab === 'mods') {
       setActiveTab('main');
-      router.push(`/dashboard/profile/${params.name}?tab=main`, { scroll: false });
+      updateTabUrl('main', true);
     }
-  }, [isVanilla, activeTab, router, params.name]);
+  }, [isVanilla, activeTab]);
 
   if (isPending || !profile) return <ProfileLoading />;
 
@@ -128,7 +145,7 @@ export const ProfilePage = ({ params }: { params: { name: string } }) => {
         value={activeTab}
         onValueChange={(value) => {
           setActiveTab(value);
-          router.push(`/dashboard/profile/${params.name}?tab=${value}`, { scroll: false });
+          updateTabUrl(value);
         }}
         aria-orientation="vertical"
         orientation="vertical"

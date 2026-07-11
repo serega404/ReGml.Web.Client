@@ -17,3 +17,6 @@ export const DASHBOARD_PAGES = {
   SENTRY: '/dashboard/sentry',
   PLAYERS: '/dashboard/players',
 };
+
+export const getProfilePath = (profileName: string) =>
+  `${DASHBOARD_PAGES.PROFILE}/${encodeURIComponent(profileName)}`;
